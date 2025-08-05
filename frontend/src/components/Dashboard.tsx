@@ -101,11 +101,16 @@ export default function Dashboard({ onNavigate }: DashboardProps) {
 
         {/* Circular Progress */}
         <div className="lg:col-span-1">
-          <CircularProgress
-            title="Onboarding Completion"
-            subtitle="Overall progress through onboarding flow"
-            percentage={74}
-          />
+          <div 
+            className="cursor-pointer transition-all duration-300 hover:scale-105"
+            onClick={() => onNavigate?.('onboarding-status')}
+          >
+            <CircularProgress
+              title="Onboarding Completion"
+              subtitle="Overall progress through onboarding flow"
+              percentage={33}
+            />
+          </div>
         </div>
       </div>
 
@@ -140,13 +145,14 @@ export default function Dashboard({ onNavigate }: DashboardProps) {
           <h3 className="text-white text-xl font-semibold mb-4">Quick Actions</h3>
           <div className="grid grid-cols-2 gap-4">
             {[
-              { label: 'Complete Training', icon: '📚', color: 'bg-blue-500' },
-              { label: 'Meet Your Team', icon: '👥', color: 'bg-green-500' },
-              { label: 'Ask the Bot', icon: '🤖', color: 'bg-purple-500' },
-              { label: 'View Progress', icon: '📈', color: 'bg-orange-500' },
+              { label: 'Complete Training', icon: '📚', color: 'bg-blue-500', action: () => onNavigate?.('learn') },
+              { label: 'Meet Your Team', icon: '👥', color: 'bg-green-500', action: () => onNavigate?.('my-team') },
+              { label: 'Ask the Bot', icon: '🤖', color: 'bg-purple-500', action: () => onNavigate?.('ask-bot') },
+              { label: 'View Roadmap', icon: '🗺️', color: 'bg-orange-500', action: () => onNavigate?.('onboarding-status') },
             ].map((action, index) => (
               <button
                 key={index}
+                onClick={action.action}
                 className="p-4 bg-gray-800/30 rounded-lg hover:bg-gray-700/50 transition-colors text-left"
               >
                 <div className={`w-10 h-10 ${action.color} rounded-lg flex items-center justify-center mb-2`}>

@@ -115,12 +115,12 @@ export default function Sidebar({ activeItem = 'dashboard', onItemClick }: Sideb
         <div className="mb-4">
           <div className="flex items-center justify-between mb-2">
             <span className="text-xs text-gray-500">Onboarding Progress</span>
-            <span className="text-xs text-gray-400">75%</span>
+            <span className="text-xs text-gray-400">33%</span>
           </div>
           <div className="w-full bg-gray-800 rounded-full h-2">
             <div 
               className="bg-gradient-to-r from-blue-500 to-green-500 h-2 rounded-full transition-all duration-300" 
-              style={{ width: '75%' }}
+              style={{ width: '33%' }}
             ></div>
           </div>
         </div>
