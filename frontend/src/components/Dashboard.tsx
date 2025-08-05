@@ -1,7 +1,7 @@
 'use client'
 
 import React, { useState } from 'react'
-import { Eye, CheckCircle, Trophy, MessageSquare, Download, Bell, Mail, ClipboardList, BookOpen, TrendingUp, Bot } from 'lucide-react'
+import { Eye, CheckCircle, Trophy, MessageSquare, Download, Bell, Mail, ClipboardList, BookOpen, TrendingUp, Bot, Package } from 'lucide-react'
 import MetricCard from './MetricCard'
 import TrendChart from './TrendChart'
 import CircularProgress from './CircularProgress'
@@ -49,13 +49,13 @@ export default function Dashboard({ onNavigate }: DashboardProps) {
       <div className="px-8">
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
         <MetricCard
-          title="To-Do"
-          value="3"
-          icon={<ClipboardList className="w-6 h-6" />}
-          trend="Tasks Remaining"
+          title="Tools Required"
+          value="2/3"
+          icon={<Package className="w-6 h-6" />}
+          trend="Installed"
           trendType="positive"
           color="blue"
-          onClick={() => onNavigate?.('my-project')}
+          onClick={() => onNavigate?.('tools-apps')}
         />
         <MetricCard
           title="Learning Progress"

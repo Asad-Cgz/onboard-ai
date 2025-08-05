@@ -41,6 +41,42 @@ class KnowledgeBase:
                 "content": "Our technology stack includes React, TypeScript, Node.js, PostgreSQL, AWS services, and Salesforce integration.",
                 "category": "technical_standards",
                 "tags": ["technology", "stack", "tools"]
+            },
+            # ADD YOUR PROJECT-SPECIFIC ENTRIES HERE:
+            {
+                "id": "project-specific-setup",
+                "title": "Project Setup Guidelines",
+                "content": "For the Insurance Claims Platform project: 1) Install Docker and Node.js 18+, 2) Clone the main repository, 3) Set up local PostgreSQL database, 4) Configure environment variables, 5) Run `npm install` and `docker-compose up`",
+                "category": "technical_standards",
+                "tags": ["setup", "installation", "docker", "database"]
+            },
+            {
+                "id": "business-rules",
+                "title": "Insurance Business Rules",
+                "content": "Critical business rules: Claims must be processed within 48 hours, Premium calculations use age+location+vehicle factors, Policy renewals require 30-day notice, High-value claims (>$50K) need manager approval",
+                "category": "insurance_domain",
+                "tags": ["business-rules", "claims", "policy", "premium"]
+            },
+            {
+                "id": "api-documentation",
+                "title": "API Integration Guide",
+                "content": "Main APIs: Customer API (REST), Policy Management API (GraphQL), Claims Processing API (REST), Payment Gateway (Stripe), External data from MVR/CLUE databases. All APIs use JWT authentication.",
+                "category": "technical_standards",
+                "tags": ["api", "integration", "authentication", "database"]
+            },
+            {
+                "id": "compliance-requirements",
+                "title": "Compliance and Security",
+                "content": "Must comply with: GDPR for EU customers, CCPA for California residents, SOX for financial reporting, PCI DSS for payment processing. All customer data must be encrypted at rest and in transit.",
+                "category": "compliance",
+                "tags": ["compliance", "security", "gdpr", "encryption"]
+            },
+            {
+                "id": "testing-procedures",
+                "title": "Testing Standards",
+                "content": "Testing requirements: 80% code coverage minimum, End-to-end tests for critical user flows, Load testing for 1000+ concurrent users, Security penetration testing quarterly",
+                "category": "technical_standards",
+                "tags": ["testing", "coverage", "security", "performance"]
             }
         ]
         

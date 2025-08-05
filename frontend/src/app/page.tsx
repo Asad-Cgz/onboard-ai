@@ -10,6 +10,8 @@ import MySkillsPage from '@/components/MySkillsPage'
 import SettingsPage from '@/components/SettingsPage'
 import AskBotPage from '@/components/AskBotPage'
 import MyProjectPage from '@/components/MyProjectPage'
+import MyAccountPage from '@/components/MyAccountPage'
+import LearnPage from '@/components/LearnPage'
 
 export default function Home() {
   const [activeItem, setActiveItem] = useState('dashboard')
@@ -30,6 +32,10 @@ export default function Home() {
         return <AskBotPage />
       case 'my-project':
         return <MyProjectPage />
+      case 'my-account':
+        return <MyAccountPage />
+      case 'learn':
+        return <LearnPage />
       case 'dashboard':
       default:
         return <Dashboard onNavigate={setActiveItem} />
