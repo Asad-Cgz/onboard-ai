@@ -1,6 +1,8 @@
 'use client'
 
 import React, { useState } from 'react'
+import { useProject } from '@/contexts/ProjectContext'
+import { getProjectData } from '@/data/projectData'
 import { 
   Package, 
   Download, 
@@ -199,6 +201,14 @@ export default function ToolsPage() {
   const [selectedTools, setSelectedTools] = useState<string[]>([])
   const [showRequestModal, setShowRequestModal] = useState(false)
 
+  const { selectedProjectId, selectedProjectName } = useProject()
+  const projectData = getProjectData(selectedProjectId)
+  
+  // Use project-specific tools data or fallback to default data
+  const currentProjectTools = projectData?.tools.currentTools || projectSections[0]?.tools || []
+  const recommendedTools = projectData?.tools.recommendedTools || availableTools
+  const deprecatedTools = projectData?.tools.deprecatedTools || previousProjectTools
+
   const getStatusIcon = (status: string) => {
     switch (status) {
       case 'installed':
@@ -245,8 +255,20 @@ export default function ToolsPage() {
       <div className="sticky top-0 z-10 bg-slate-900/95 backdrop-blur-sm px-8 pt-8 pb-6 mb-8 border-b border-gray-800">
         <div className="flex items-center justify-between">
           <div>
-            <h1 className="text-white text-3xl font-bold mb-2">Tools & Apps Management</h1>
-            <p className="text-gray-400">Manage project-specific tools, requests, and offloading</p>
+            <h1 className="text-white text-3xl font-bold mb-2">
+              Tools & Apps Management
+              {selectedProjectName && (
+                <span className="text-blue-400 text-xl ml-3 font-normal">
+                  - {selectedProjectName}
+                </span>
+              )}
+            </h1>
+            <p className="text-gray-400">
+              {projectData 
+                ? `Manage tools and applications for ${projectData.dashboard.projectSpecific.name}` 
+                : 'Manage project-specific tools, requests, and offloading'
+              }
+            </p>
           </div>
           <div className="flex items-center space-x-4">
             <button 
@@ -262,9 +284,9 @@ export default function ToolsPage() {
         {/* Tabs */}
         <div className="flex space-x-1 mt-6 bg-gray-800/50 rounded-lg p-1">
           {[
-            { id: 'current', label: 'Current Project Tools', count: projectSections[0]?.tools.length || 0 },
-            { id: 'offload', label: 'Tools to Offload', count: previousProjectTools.length },
-            { id: 'request', label: 'Available Tools', count: availableTools.length }
+            { id: 'current', label: 'Current Project Tools', count: currentProjectTools.length },
+            { id: 'offload', label: 'Tools to Offload', count: deprecatedTools.length },
+            { id: 'request', label: 'Available Tools', count: recommendedTools.length }
           ].map((tab) => (
             <button
               key={tab.id}
@@ -313,26 +335,27 @@ export default function ToolsPage() {
         {/* Content based on selected tab */}
         {selectedTab === 'current' && (
           <div className="space-y-8">
-            {projectSections.map((project) => (
-              <div key={project.id} className="space-y-6">
+            <div className="space-y-6">
                 {/* Project Header */}
                 <div className="flex items-center space-x-4 mb-6">
-                  <div className={`w-12 h-12 rounded-xl bg-gradient-to-r ${project.color} flex items-center justify-center`}>
-                    {project.icon}
+                  <div className="w-12 h-12 rounded-xl bg-gradient-to-r from-blue-500 to-cyan-600 flex items-center justify-center">
+                    <Briefcase className="w-6 h-6" />
                   </div>
                   <div>
-                    <h2 className="text-white text-2xl font-bold">{project.name}</h2>
+                    <h2 className="text-white text-2xl font-bold">
+                      {selectedProjectName || 'Current Project Tools'}
+                    </h2>
                     <p className="text-gray-400">Required and optional tools for this project</p>
                   </div>
                   <div className="ml-auto text-right">
                     <div className="text-sm text-gray-400">
-                      {project.tools.filter(t => t.status === 'installed').length} of {project.tools.length} installed
+                      {currentProjectTools.filter(t => t.status === 'installed').length} of {currentProjectTools.length} installed
                     </div>
                     <div className="w-32 bg-gray-800 rounded-full h-2 mt-1">
                       <div 
-                        className={`bg-gradient-to-r ${project.color} h-2 rounded-full transition-all duration-300`}
+                        className="bg-gradient-to-r from-blue-500 to-cyan-600 h-2 rounded-full transition-all duration-300"
                         style={{ 
-                          width: `${(project.tools.filter(t => t.status === 'installed').length / project.tools.length) * 100}%` 
+                          width: `${currentProjectTools.length > 0 ? (currentProjectTools.filter(t => t.status === 'installed').length / currentProjectTools.length) * 100 : 0}%` 
                         }}
                       ></div>
                     </div>
@@ -341,7 +364,7 @@ export default function ToolsPage() {
 
                 {/* Tools Grid */}
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                  {project.tools
+                  {currentProjectTools
                     .filter(tool => 
                       (selectedCategory === 'all' || tool.category === selectedCategory) &&
                       (searchTerm === '' || tool.name.toLowerCase().includes(searchTerm.toLowerCase()))
@@ -351,7 +374,7 @@ export default function ToolsPage() {
                       <div className="flex items-start justify-between mb-4">
                         <div className="flex items-center space-x-3">
                           <div className="w-10 h-10 bg-gray-700 rounded-lg flex items-center justify-center">
-                            {tool.icon}
+                            <Package className="w-5 h-5" />
                           </div>
                           <div>
                             <h3 className="text-white font-semibold">{tool.name}</h3>
@@ -410,7 +433,6 @@ export default function ToolsPage() {
                   ))}
                 </div>
               </div>
-            ))}
           </div>
         )}
 
@@ -441,7 +463,7 @@ export default function ToolsPage() {
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {previousProjectTools
+              {deprecatedTools
                 .filter(tool => 
                   (selectedCategory === 'all' || tool.category === selectedCategory) &&
                   (searchTerm === '' || tool.name.toLowerCase().includes(searchTerm.toLowerCase()))
@@ -459,7 +481,7 @@ export default function ToolsPage() {
                   <div className="flex items-start justify-between mb-4">
                     <div className="flex items-center space-x-3">
                       <div className="w-10 h-10 bg-gray-700 rounded-lg flex items-center justify-center">
-                        {tool.icon}
+                        <Package className="w-5 h-5" />
                       </div>
                       <div>
                         <h3 className="text-white font-semibold">{tool.name}</h3>
@@ -473,7 +495,7 @@ export default function ToolsPage() {
                         onChange={() => handleToolSelect(tool.id)}
                         className="w-4 h-4 text-red-600 bg-gray-700 border-gray-600 rounded focus:ring-red-500"
                       />
-                      {getStatusIcon(tool.status)}
+                      {getStatusIcon('deprecated')}
                     </div>
                   </div>
 
@@ -485,8 +507,8 @@ export default function ToolsPage() {
                       <span className="text-gray-300 ml-1">{tool.size}</span>
                     </div>
                     <div>
-                      <span className="text-gray-500">Project:</span>
-                      <span className="text-gray-300 ml-1">{tool.project}</span>
+                      <span className="text-gray-500">License:</span>
+                      <span className="text-gray-300 ml-1">{tool.license}</span>
                     </div>
                     <div>
                       <span className="text-gray-500">Last Used:</span>

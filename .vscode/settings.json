@@ -1,0 +1,8 @@
+{
+    "appService.zipIgnorePattern": [
+        "node_modules{,/**}",
+        ".vscode{,/**}"
+    ],
+    "appService.defaultWebAppToDeploy": "/subscriptions/b2371b64-0a61-4350-9dcc-299e333eaafd/resourceGroups/CTS-VibeAppca261/providers/Microsoft.Web/sites/CTS-VibeAppca2614-3",
+    "appService.deploySubpath": "frontend"
+}

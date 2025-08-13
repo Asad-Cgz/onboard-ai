@@ -2,6 +2,8 @@
 
 import React, { useState } from 'react'
 import { Users, MapPin, Mail, Phone, Linkedin, Github, X, Calendar, Award, Target } from 'lucide-react'
+import { useProject } from '@/contexts/ProjectContext'
+import { getProjectData } from '@/data/projectData'
 
 interface TeamMember {
   id: string
@@ -186,22 +188,32 @@ const departmentConfig = {
     subtitle: 'Strategic direction and technical excellence',
     color: 'from-blue-500 to-purple-600'
   },
-  development: {
+  'dev-team': {
     title: 'Development Team',
     subtitle: 'Building innovative solutions with cutting-edge technology',
     color: 'from-green-500 to-blue-500'
   },
-  testing: {
+  'testing-team': {
     title: 'Quality Assurance',
     subtitle: 'Ensuring excellence through comprehensive testing',
     color: 'from-orange-500 to-red-500'
   },
-  business: {
+  'design-team': {
+    title: 'Design & UX',
+    subtitle: 'Creating beautiful and intuitive user experiences',
+    color: 'from-pink-500 to-rose-500'
+  },
+  'security-team': {
+    title: 'Security & Compliance',
+    subtitle: 'Protecting systems and ensuring regulatory compliance',
+    color: 'from-red-500 to-orange-500'
+  },
+  'business-analyst': {
     title: 'Business Analysis & Scrum',
     subtitle: 'Bridging business needs with technical solutions',
     color: 'from-purple-500 to-pink-500'
   },
-  client: {
+  'client-side': {
     title: 'Client Team',
     subtitle: 'Strategic partnership and project leadership',
     color: 'from-cyan-500 to-blue-500'
@@ -210,9 +222,16 @@ const departmentConfig = {
 
 export default function TeamPage() {
   const [selectedMember, setSelectedMember] = useState<TeamMember | null>(null)
+  const { selectedProjectId, selectedProjectName } = useProject()
+  const projectData = getProjectData(selectedProjectId)
+  
+  // Use project-specific team data if available, otherwise fall back to default
+  const currentTeamData = projectData ? 
+    [...projectData.team.leadership, ...projectData.team.developers, ...(projectData.team.design || []), ...(projectData.team.security || []), ...projectData.team.business, ...projectData.team.client] :
+    teamData
 
   const getDepartmentMembers = (dept: string) => {
-    return teamData.filter(member => member.department === dept)
+    return currentTeamData.filter(member => member.department === dept)
   }
 
   const renderTeamSection = (department: string) => {
@@ -301,9 +320,14 @@ export default function TeamPage() {
       <div className="relative bg-gradient-to-br from-slate-900 via-blue-900/20 to-slate-900 px-8 py-20 overflow-hidden">
         {/* Hero Content */}
         <div className="text-center mb-16">
-          <h1 className="text-white text-5xl font-bold mb-4">Our Team</h1>
+          <h1 className="text-white text-5xl font-bold mb-4">
+            {selectedProjectName ? `${selectedProjectName} Team` : 'Our Team'}
+          </h1>
           <p className="text-gray-300 text-xl max-w-2xl mx-auto">
-            Explore Our Success Stories and Innovative Projects
+            {projectData 
+              ? `Meet the dedicated team working on ${projectData.dashboard.projectSpecific.name}` 
+              : 'Explore Our Success Stories and Innovative Projects'
+            }
           </p>
         </div>
 
@@ -408,8 +432,8 @@ export default function TeamPage() {
               <div className="w-3 h-3 bg-blue-500 rounded-full mr-3"></div>
               Cognizant Team
             </h2>
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-              {['leadership', 'development', 'testing', 'business'].map((dept) => {
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-4">
+              {['leadership', 'dev-team', 'testing-team', 'design-team', 'security-team', 'business-analyst'].map((dept) => {
                 const config = departmentConfig[dept as keyof typeof departmentConfig]
                 const memberCount = getDepartmentMembers(dept).length
                 return (
@@ -435,7 +459,7 @@ export default function TeamPage() {
               Client Team
             </h2>
             <div className="grid grid-cols-1 md:grid-cols-1 lg:grid-cols-1 gap-4 max-w-md">
-              {['client'].map((dept) => {
+              {['client-side'].map((dept) => {
                 const config = departmentConfig[dept as keyof typeof departmentConfig]
                 const memberCount = getDepartmentMembers(dept).length
                 return (
@@ -467,9 +491,11 @@ export default function TeamPage() {
             <div className="flex-1 h-px bg-gradient-to-r from-transparent via-blue-500 to-transparent"></div>
           </div>
           {renderTeamSection('leadership')}
-          {renderTeamSection('development')}
-          {renderTeamSection('testing')}
-          {renderTeamSection('business')}
+          {renderTeamSection('dev-team')}
+          {renderTeamSection('testing-team')}
+          {renderTeamSection('design-team')}
+          {renderTeamSection('security-team')}
+          {renderTeamSection('business-analyst')}
         </div>
 
         {/* Client Side Teams */}
@@ -481,7 +507,7 @@ export default function TeamPage() {
             </div>
             <div className="flex-1 h-px bg-gradient-to-r from-transparent via-cyan-500 to-transparent"></div>
           </div>
-          {renderTeamSection('client')}
+          {renderTeamSection('client-side')}
         </div>
       </div>
 

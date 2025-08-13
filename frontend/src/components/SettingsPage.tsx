@@ -1,6 +1,6 @@
 'use client'
 
-import React, { useState } from 'react'
+import React, { useState, useEffect } from 'react'
 import { 
   Palette, 
   Type, 
@@ -25,8 +25,10 @@ import {
   Settings as SettingsIcon,
   Lock,
   Mail,
-  MessageSquare
+  MessageSquare,
+  CheckCircle
 } from 'lucide-react'
+import { useSettings } from '@/contexts/SettingsContext'
 
 interface SettingOption {
   id: string
@@ -98,43 +100,41 @@ const settingSections: SettingSection[] = [
         type: 'slider',
         min: 0,
         max: 20,
-        step: 2,
-        description: 'Roundness of corners and buttons'
+        step: 1,
+        description: 'Roundness of corners and elements'
       }
     ]
   },
   {
     id: 'typography',
     title: 'Typography',
-    description: 'Font settings and text display preferences',
+    description: 'Adjust text size, font, and readability settings',
     icon: <Type className="w-6 h-6" />,
     color: 'from-blue-500 to-cyan-600',
     settings: [
       {
         id: 'fontSize',
         label: 'Font Size',
-        value: 'medium',
-        type: 'radio',
-        description: 'Base font size for the interface',
-        options: [
-          { value: 'small', label: 'Small (14px)' },
-          { value: 'medium', label: 'Medium (16px)' },
-          { value: 'large', label: 'Large (18px)' },
-          { value: 'xl', label: 'Extra Large (20px)' }
-        ]
+        value: 16,
+        type: 'slider',
+        min: 12,
+        max: 24,
+        step: 1,
+        description: 'Base font size for the application'
       },
       {
         id: 'fontFamily',
         label: 'Font Family',
-        value: 'inter',
+        value: 'Inter',
         type: 'select',
-        description: 'Choose your preferred font family',
+        description: 'Choose your preferred font',
         options: [
-          { value: 'inter', label: 'Inter (Default)' },
-          { value: 'roboto', label: 'Roboto' },
-          { value: 'openSans', label: 'Open Sans' },
-          { value: 'poppins', label: 'Poppins' },
-          { value: 'system', label: 'System Font' }
+          { value: 'Inter', label: 'Inter (Default)' },
+          { value: 'Roboto', label: 'Roboto' },
+          { value: 'Open Sans', label: 'Open Sans' },
+          { value: 'Lato', label: 'Lato' },
+          { value: 'Source Sans Pro', label: 'Source Sans Pro' },
+          { value: 'system-ui', label: 'System Font' }
         ]
       },
       {
@@ -146,93 +146,39 @@ const settingSections: SettingSection[] = [
         max: 2.0,
         step: 0.1,
         description: 'Spacing between lines of text'
-      },
-      {
-        id: 'fontWeight',
-        label: 'Font Weight',
-        value: 'normal',
-        type: 'select',
-        description: 'Default text weight',
-        options: [
-          { value: 'light', label: 'Light' },
-          { value: 'normal', label: 'Normal' },
-          { value: 'medium', label: 'Medium' },
-          { value: 'semibold', label: 'Semi Bold' }
-        ]
       }
     ]
   },
   {
-    id: 'language',
-    title: 'Language & Region',
-    description: 'Language, date format, and regional settings',
-    icon: <Globe className="w-6 h-6" />,
+    id: 'layout',
+    title: 'Layout & Interface',
+    description: 'Control spacing, layout, and interface density',
+    icon: <Monitor className="w-6 h-6" />,
     color: 'from-green-500 to-emerald-600',
     settings: [
       {
-        id: 'language',
-        label: 'Display Language',
-        value: 'en',
-        type: 'select',
-        description: 'Choose your preferred language',
-        options: [
-          { value: 'en', label: 'English' },
-          { value: 'es', label: 'Español' },
-          { value: 'fr', label: 'Français' },
-          { value: 'de', label: 'Deutsch' },
-          { value: 'it', label: 'Italiano' },
-          { value: 'pt', label: 'Português' },
-          { value: 'zh', label: '中文' },
-          { value: 'ja', label: '日本語' },
-          { value: 'ko', label: '한국어' },
-          { value: 'ar', label: 'العربية' }
-        ]
+        id: 'compactMode',
+        label: 'Compact Mode',
+        value: false,
+        type: 'toggle',
+        description: 'Reduce spacing and padding for more content density'
       },
       {
-        id: 'dateFormat',
-        label: 'Date Format',
-        value: 'MM/DD/YYYY',
-        type: 'select',
-        description: 'How dates are displayed',
-        options: [
-          { value: 'MM/DD/YYYY', label: 'MM/DD/YYYY (US)' },
-          { value: 'DD/MM/YYYY', label: 'DD/MM/YYYY (UK)' },
-          { value: 'YYYY-MM-DD', label: 'YYYY-MM-DD (ISO)' },
-          { value: 'DD.MM.YYYY', label: 'DD.MM.YYYY (German)' }
-        ]
-      },
-      {
-        id: 'timeFormat',
-        label: 'Time Format',
-        value: '12h',
-        type: 'radio',
-        description: 'How time is displayed',
-        options: [
-          { value: '12h', label: '12 Hour (AM/PM)' },
-          { value: '24h', label: '24 Hour' }
-        ]
-      },
-      {
-        id: 'timezone',
-        label: 'Timezone',
-        value: 'UTC',
-        type: 'select',
-        description: 'Your local timezone',
-        options: [
-          { value: 'UTC', label: 'UTC (Coordinated Universal Time)' },
-          { value: 'EST', label: 'EST (Eastern Standard Time)' },
-          { value: 'PST', label: 'PST (Pacific Standard Time)' },
-          { value: 'GMT', label: 'GMT (Greenwich Mean Time)' },
-          { value: 'CET', label: 'CET (Central European Time)' },
-          { value: 'JST', label: 'JST (Japan Standard Time)' }
-        ]
+        id: 'sidebarWidth',
+        label: 'Sidebar Width',
+        value: 280,
+        type: 'slider',
+        min: 240,
+        max: 400,
+        step: 20,
+        description: 'Width of the navigation sidebar'
       }
     ]
   },
   {
     id: 'accessibility',
     title: 'Accessibility',
-    description: 'Options to improve usability and accessibility',
+    description: 'Improve usability and accessibility features',
     icon: <Accessibility className="w-6 h-6" />,
     color: 'from-orange-500 to-red-600',
     settings: [
@@ -251,41 +197,28 @@ const settingSections: SettingSection[] = [
         description: 'Minimize animations and transitions'
       },
       {
-        id: 'focusIndicator',
-        label: 'Enhanced Focus Indicators',
-        value: true,
-        type: 'toggle',
-        description: 'More visible focus outlines for keyboard navigation'
-      },
-      {
         id: 'screenReader',
-        label: 'Screen Reader Optimized',
+        label: 'Screen Reader Support',
         value: false,
         type: 'toggle',
-        description: 'Optimize interface for screen readers'
-      },
-      {
-        id: 'colorBlindSupport',
-        label: 'Color Blind Support',
-        value: 'none',
-        type: 'select',
-        description: 'Adjust colors for color vision deficiency',
-        options: [
-          { value: 'none', label: 'None' },
-          { value: 'protanopia', label: 'Protanopia' },
-          { value: 'deuteranopia', label: 'Deuteranopia' },
-          { value: 'tritanopia', label: 'Tritanopia' }
-        ]
+        description: 'Enhanced compatibility with screen readers'
       }
     ]
   },
   {
     id: 'notifications',
     title: 'Notifications',
-    description: 'Control how and when you receive notifications',
+    description: 'Manage how you receive alerts and updates',
     icon: <Bell className="w-6 h-6" />,
-    color: 'from-yellow-500 to-orange-600',
+    color: 'from-pink-500 to-rose-600',
     settings: [
+      {
+        id: 'desktopNotifications',
+        label: 'Desktop Notifications',
+        value: true,
+        type: 'toggle',
+        description: 'Show notifications on your desktop'
+      },
       {
         id: 'emailNotifications',
         label: 'Email Notifications',
@@ -294,30 +227,73 @@ const settingSections: SettingSection[] = [
         description: 'Receive notifications via email'
       },
       {
-        id: 'pushNotifications',
-        label: 'Push Notifications',
-        value: true,
-        type: 'toggle',
-        description: 'Browser push notifications'
-      },
-      {
         id: 'soundEnabled',
-        label: 'Notification Sounds',
+        label: 'Sound Effects',
         value: true,
         type: 'toggle',
-        description: 'Play sound for notifications'
+        description: 'Play sound for notifications and interactions'
       },
       {
         id: 'notificationFrequency',
-        label: 'Frequency',
-        value: 'normal',
+        label: 'Notification Frequency',
+        value: 'realtime',
         type: 'select',
         description: 'How often to receive notifications',
         options: [
-          { value: 'high', label: 'High (Immediate)' },
-          { value: 'normal', label: 'Normal (Every 15 min)' },
-          { value: 'low', label: 'Low (Hourly)' },
-          { value: 'minimal', label: 'Minimal (Daily digest)' }
+          { value: 'realtime', label: 'Real-time' },
+          { value: 'hourly', label: 'Hourly Digest' },
+          { value: 'daily', label: 'Daily Summary' },
+          { value: 'weekly', label: 'Weekly Summary' }
+        ]
+      }
+    ]
+  },
+  {
+    id: 'language',
+    title: 'Language & Region',
+    description: 'Set your language, date, and time preferences',
+    icon: <Globe className="w-6 h-6" />,
+    color: 'from-indigo-500 to-purple-600',
+    settings: [
+      {
+        id: 'language',
+        label: 'Display Language',
+        value: 'en',
+        type: 'select',
+        description: 'Choose your preferred language',
+        options: [
+          { value: 'en', label: 'English' },
+          { value: 'es', label: 'Español' },
+          { value: 'fr', label: 'Français' },
+          { value: 'de', label: 'Deutsch' },
+          { value: 'it', label: 'Italiano' },
+          { value: 'pt', label: 'Português' },
+          { value: 'zh', label: '中文' },
+          { value: 'ja', label: '日本語' }
+        ]
+      },
+      {
+        id: 'dateFormat',
+        label: 'Date Format',
+        value: 'MM/dd/yyyy',
+        type: 'select',
+        description: 'How dates are displayed',
+        options: [
+          { value: 'MM/dd/yyyy', label: 'MM/DD/YYYY (US)' },
+          { value: 'dd/MM/yyyy', label: 'DD/MM/YYYY (UK)' },
+          { value: 'yyyy-MM-dd', label: 'YYYY-MM-DD (ISO)' },
+          { value: 'dd.MM.yyyy', label: 'DD.MM.YYYY (EU)' }
+        ]
+      },
+      {
+        id: 'timeFormat',
+        label: 'Time Format',
+        value: '12h',
+        type: 'radio',
+        description: 'Choose between 12-hour or 24-hour time',
+        options: [
+          { value: '12h', label: '12-hour (AM/PM)', icon: <Smartphone className="w-4 h-4" /> },
+          { value: '24h', label: '24-hour', icon: <Laptop className="w-4 h-4" /> }
         ]
       }
     ]
@@ -325,28 +301,29 @@ const settingSections: SettingSection[] = [
   {
     id: 'privacy',
     title: 'Privacy & Security',
-    description: 'Privacy settings and security preferences',
+    description: 'Control your privacy settings and security options',
     icon: <Shield className="w-6 h-6" />,
     color: 'from-red-500 to-pink-600',
     settings: [
       {
-        id: 'dataCollection',
-        label: 'Analytics Data Collection',
+        id: 'analyticsEnabled',
+        label: 'Analytics & Telemetry',
         value: true,
         type: 'toggle',
-        description: 'Allow collection of usage analytics to improve the product'
+        description: 'Help improve the app by sharing anonymous usage data'
       },
       {
         id: 'sessionTimeout',
         label: 'Session Timeout',
-        value: '8h',
+        value: '30m',
         type: 'select',
-        description: 'Automatically log out after inactivity',
+        description: 'Automatically log out after period of inactivity',
         options: [
-          { value: '1h', label: '1 Hour' },
-          { value: '4h', label: '4 Hours' },
-          { value: '8h', label: '8 Hours' },
-          { value: '24h', label: '24 Hours' },
+          { value: '15m', label: '15 minutes' },
+          { value: '30m', label: '30 minutes' },
+          { value: '1h', label: '1 hour' },
+          { value: '2h', label: '2 hours' },
+          { value: '4h', label: '4 hours' },
           { value: 'never', label: 'Never' }
         ]
       },
@@ -370,31 +347,26 @@ const settingSections: SettingSection[] = [
 
 export default function SettingsPage() {
   const [selectedSection, setSelectedSection] = useState('appearance')
-  const [settings, setSettings] = useState<Record<string, any>>({})
-  const [hasChanges, setHasChanges] = useState(false)
+  const [showSuccessMessage, setShowSuccessMessage] = useState(false)
+  const { settings, updateSetting, saveSettings, resetSettings, hasUnsavedChanges } = useSettings()
 
-  const updateSetting = (sectionId: string, settingId: string, value: any) => {
-    setSettings(prev => ({
-      ...prev,
-      [`${sectionId}.${settingId}`]: value
-    }))
-    setHasChanges(true)
-  }
+  // Listen for settings saved event
+  useEffect(() => {
+    const handleSettingsSaved = () => {
+      setShowSuccessMessage(true)
+      setTimeout(() => setShowSuccessMessage(false), 3000)
+    }
+
+    window.addEventListener('settingsSaved', handleSettingsSaved)
+    return () => window.removeEventListener('settingsSaved', handleSettingsSaved)
+  }, [])
 
   const getCurrentValue = (sectionId: string, settingId: string, defaultValue: any) => {
-    return settings[`${sectionId}.${settingId}`] ?? defaultValue
+    return (settings as any)[settingId] ?? defaultValue
   }
 
-  const saveSettings = () => {
-    // Here you would typically send the settings to your backend
-    console.log('Saving settings:', settings)
-    setHasChanges(false)
-    // Show success message
-  }
-
-  const resetSettings = () => {
-    setSettings({})
-    setHasChanges(false)
+  const handleUpdateSetting = (sectionId: string, settingId: string, value: any) => {
+    updateSetting(settingId as any, value)
   }
 
   const currentSection = settingSections.find(section => section.id === selectedSection)
@@ -409,7 +381,7 @@ export default function SettingsPage() {
             <input
               type="checkbox"
               checked={currentValue}
-              onChange={(e) => updateSetting(section.id, setting.id, e.target.checked)}
+              onChange={(e) => handleUpdateSetting(section.id, setting.id, e.target.checked)}
               className="sr-only peer"
             />
             <div className="w-11 h-6 bg-gray-700 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-800 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-600"></div>
@@ -420,8 +392,8 @@ export default function SettingsPage() {
         return (
           <select
             value={currentValue}
-            onChange={(e) => updateSetting(section.id, setting.id, e.target.value)}
-            className="px-3 py-2 bg-gray-700 border border-gray-600 rounded-lg text-white focus:outline-none focus:border-blue-500"
+            onChange={(e) => handleUpdateSetting(section.id, setting.id, e.target.value)}
+            className="px-3 py-2 bg-gray-700 border border-gray-600 rounded-lg text-white focus:outline-none focus:border-blue-500 min-w-[200px]"
           >
             {setting.options?.map(option => (
               <option key={option.value} value={option.value}>
@@ -441,7 +413,7 @@ export default function SettingsPage() {
                   name={`${section.id}-${setting.id}`}
                   value={option.value}
                   checked={currentValue === option.value}
-                  onChange={(e) => updateSetting(section.id, setting.id, e.target.value)}
+                  onChange={(e) => handleUpdateSetting(section.id, setting.id, e.target.value)}
                   className="w-4 h-4 text-blue-600 bg-gray-700 border-gray-600 focus:ring-blue-500"
                 />
                 <div className="flex items-center space-x-2">
@@ -462,7 +434,7 @@ export default function SettingsPage() {
               max={setting.max}
               step={setting.step}
               value={currentValue}
-              onChange={(e) => updateSetting(section.id, setting.id, parseFloat(e.target.value))}
+              onChange={(e) => handleUpdateSetting(section.id, setting.id, parseFloat(e.target.value))}
               className="w-full h-2 bg-gray-700 rounded-lg appearance-none cursor-pointer slider"
             />
             <div className="flex justify-between text-sm text-gray-400">
@@ -479,7 +451,7 @@ export default function SettingsPage() {
             <input
               type="color"
               value={currentValue}
-              onChange={(e) => updateSetting(section.id, setting.id, e.target.value)}
+              onChange={(e) => handleUpdateSetting(section.id, setting.id, e.target.value)}
               className="w-12 h-10 rounded-lg border border-gray-600 bg-gray-700 cursor-pointer"
             />
             <span className="text-gray-300 font-mono text-sm">{currentValue}</span>
@@ -500,116 +472,114 @@ export default function SettingsPage() {
             <h1 className="text-white text-3xl font-bold mb-2">Settings</h1>
             <p className="text-gray-400">Customize your ElevateHub experience</p>
           </div>
+          
+          {/* Action buttons */}
           <div className="flex items-center space-x-4">
-            {hasChanges && (
-              <>
+            {/* Success message */}
+            {showSuccessMessage && (
+              <div className="flex items-center space-x-2 px-4 py-2 bg-green-500/20 border border-green-500/30 rounded-lg">
+                <CheckCircle className="w-4 h-4 text-green-400" />
+                <span className="text-green-400 text-sm font-medium">Settings saved!</span>
+              </div>
+            )}
+            
+            {hasUnsavedChanges && (
+              <div className="flex items-center space-x-2">
                 <button
                   onClick={resetSettings}
-                  className="px-4 py-2 bg-gray-600 text-white rounded-lg hover:bg-gray-700 transition-colors flex items-center space-x-2"
+                  className="flex items-center space-x-2 px-4 py-2 bg-gray-700 hover:bg-gray-600 text-gray-300 rounded-lg transition-colors"
                 >
                   <RotateCcw className="w-4 h-4" />
                   <span>Reset</span>
                 </button>
                 <button
                   onClick={saveSettings}
-                  className="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors flex items-center space-x-2"
+                  className="flex items-center space-x-2 px-6 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-medium transition-colors"
                 >
                   <Save className="w-4 h-4" />
                   <span>Save Changes</span>
                 </button>
-              </>
+              </div>
             )}
           </div>
         </div>
       </div>
 
-      <div className="flex px-8 pb-8 gap-8">
-        {/* Settings Navigation */}
-        <div className="w-80 space-y-2">
-          {settingSections.map((section) => (
-            <button
-              key={section.id}
-              onClick={() => setSelectedSection(section.id)}
-              className={`w-full text-left p-4 rounded-xl border transition-all duration-300 ${
-                selectedSection === section.id
-                  ? 'bg-blue-500/10 border-blue-500/30 shadow-lg shadow-blue-500/10'
-                  : 'bg-gray-800/30 border-gray-700/50 hover:border-gray-600/50 hover:bg-gray-700/30'
-              }`}
-            >
-              <div className="flex items-center space-x-3">
-                <div className={`w-10 h-10 rounded-lg bg-gradient-to-r ${section.color} flex items-center justify-center`}>
-                  {section.icon}
-                </div>
-                <div className="flex-1">
-                  <h3 className="text-white font-medium">{section.title}</h3>
-                  <p className="text-gray-400 text-sm">{section.description}</p>
-                </div>
-                <ChevronRight className="w-5 h-5 text-gray-400" />
-              </div>
-            </button>
-          ))}
-        </div>
-
-        {/* Settings Content */}
-        <div className="flex-1">
-          {currentSection && (
-            <div className="space-y-8">
-              {/* Section Header */}
-              <div className="flex items-center space-x-4 pb-6 border-b border-gray-800">
-                <div className={`w-16 h-16 rounded-xl bg-gradient-to-r ${currentSection.color} flex items-center justify-center`}>
-                  {currentSection.icon}
-                </div>
-                <div>
-                  <h2 className="text-white text-2xl font-bold">{currentSection.title}</h2>
-                  <p className="text-gray-400">{currentSection.description}</p>
-                </div>
-              </div>
-
-              {/* Settings List */}
-              <div className="space-y-6">
-                {currentSection.settings.map((setting) => (
-                  <div
-                    key={setting.id}
-                    className="bg-gray-800/30 rounded-xl p-6 border border-gray-700/50"
-                  >
-                    <div className="flex items-start justify-between mb-4">
-                      <div className="flex-1">
-                        <h3 className="text-white font-semibold text-lg mb-1">{setting.label}</h3>
-                        {setting.description && (
-                          <p className="text-gray-400 text-sm">{setting.description}</p>
-                        )}
+      <div className="px-8 pb-8">
+        <div className="flex gap-8">
+          {/* Sidebar Navigation */}
+          <div className="w-80 flex-shrink-0">
+            <div className="bg-gray-800/50 rounded-xl border border-gray-700/50 sticky top-32">
+              <div className="p-6">
+                <h2 className="text-white font-semibold mb-4">Categories</h2>
+                <nav className="space-y-2">
+                  {settingSections.map((section) => (
+                    <button
+                      key={section.id}
+                      onClick={() => setSelectedSection(section.id)}
+                      className={`w-full flex items-center justify-between p-3 rounded-lg transition-all ${
+                        selectedSection === section.id
+                          ? 'bg-blue-600 text-white'
+                          : 'text-gray-300 hover:text-white hover:bg-gray-700/50'
+                      }`}
+                    >
+                      <div className="flex items-center space-x-3">
+                        <div className={`p-2 rounded-lg bg-gradient-to-r ${section.color}`}>
+                          {section.icon}
+                        </div>
+                        <div className="text-left">
+                          <div className="font-medium">{section.title}</div>
+                          <div className="text-xs opacity-75 truncate max-w-[140px]">
+                            {section.description}
+                          </div>
+                        </div>
                       </div>
-                      <div className="ml-6">
-                        {renderSettingControl(currentSection, setting)}
-                      </div>
-                    </div>
-                  </div>
-                ))}
+                      <ChevronRight className="w-4 h-4" />
+                    </button>
+                  ))}
+                </nav>
               </div>
-
-              {/* Preview Section for Appearance */}
-              {selectedSection === 'appearance' && (
-                <div className="bg-gray-800/30 rounded-xl p-6 border border-gray-700/50">
-                  <h3 className="text-white font-semibold text-lg mb-4">Preview</h3>
-                  <div className="bg-gray-700/50 rounded-lg p-4 border border-gray-600/50">
-                    <div className="mb-3">
-                      <div className="w-16 h-3 bg-blue-500 rounded mb-2"></div>
-                      <div className="w-24 h-2 bg-gray-500 rounded"></div>
-                    </div>
-                    <div className="space-y-2">
-                      <div className="w-full h-2 bg-gray-500 rounded"></div>
-                      <div className="w-3/4 h-2 bg-gray-500 rounded"></div>
-                      <div className="w-1/2 h-2 bg-gray-500 rounded"></div>
-                    </div>
-                    <div className="mt-4 flex space-x-2">
-                      <div className="px-3 py-1 bg-blue-500 text-white text-xs rounded">Button</div>
-                      <div className="px-3 py-1 bg-gray-600 text-white text-xs rounded">Secondary</div>
-                    </div>
-                  </div>
-                </div>
-              )}
             </div>
-          )}
+          </div>
+
+          {/* Main Content */}
+          <div className="flex-1">
+            {currentSection && (
+              <div className="bg-gray-800/50 rounded-xl border border-gray-700/50 p-8">
+                {/* Section Header */}
+                <div className="mb-8">
+                  <div className="flex items-center space-x-4 mb-4">
+                    <div className={`p-3 rounded-xl bg-gradient-to-r ${currentSection.color}`}>
+                      {currentSection.icon}
+                    </div>
+                    <div>
+                      <h2 className="text-white text-2xl font-bold">{currentSection.title}</h2>
+                      <p className="text-gray-400">{currentSection.description}</p>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Settings */}
+                <div className="space-y-8">
+                  {currentSection.settings.map((setting) => (
+                    <div key={setting.id} className="border-b border-gray-700/50 pb-6 last:border-b-0">
+                      <div className="flex items-start justify-between">
+                        <div className="flex-1 mr-8">
+                          <h3 className="text-white font-medium mb-1">{setting.label}</h3>
+                          {setting.description && (
+                            <p className="text-gray-400 text-sm">{setting.description}</p>
+                          )}
+                        </div>
+                        <div className="flex-shrink-0">
+                          {renderSettingControl(currentSection, setting)}
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+          </div>
         </div>
       </div>
     </div>

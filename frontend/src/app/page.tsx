@@ -12,9 +12,11 @@ import AskBotPage from '@/components/AskBotPage'
 import MyProjectPage from '@/components/MyProjectPage'
 import MyAccountPage from '@/components/MyAccountPage'
 import LearnPage from '@/components/LearnPage'
+import { ProjectProvider } from '@/contexts/ProjectContext'
+import { SettingsProvider } from '@/contexts/SettingsContext'
 
 export default function Home() {
-  const [activeItem, setActiveItem] = useState('dashboard')
+  const [activeItem, setActiveItem] = useState('my-project')
 
   const renderContent = () => {
     switch (activeItem) {
@@ -31,7 +33,7 @@ export default function Home() {
       case 'ask-bot':
         return <AskBotPage />
       case 'my-project':
-        return <MyProjectPage />
+        return <MyProjectPage onNavigate={setActiveItem} />
       case 'my-account':
         return <MyAccountPage />
       case 'learn':
@@ -43,9 +45,13 @@ export default function Home() {
   }
 
   return (
-    <div className="flex h-screen bg-slate-900">
-      <Sidebar activeItem={activeItem} onItemClick={setActiveItem} />
-      {renderContent()}
-    </div>
+    <SettingsProvider>
+      <ProjectProvider>
+        <div className="flex h-screen bg-slate-900 dynamic-font-family dynamic-line-height">
+          <Sidebar activeItem={activeItem} onItemClick={setActiveItem} />
+          {renderContent()}
+        </div>
+      </ProjectProvider>
+    </SettingsProvider>
   )
 } 
