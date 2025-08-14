@@ -5,6 +5,8 @@ import { Eye, CheckCircle, Trophy, MessageSquare, Download, Bell, Mail, Clipboar
 import MetricCard from './MetricCard'
 import TrendChart from './TrendChart'
 import CircularProgress from './CircularProgress'
+import { useProject } from '@/contexts/ProjectContext'
+import { getProjectData } from '@/data/projectData'
 
 const sampleData = [
   { day: 'Jan 18', value: 70 },
@@ -22,6 +24,8 @@ interface DashboardProps {
 
 export default function Dashboard({ onNavigate }: DashboardProps) {
   const [activeTab, setActiveTab] = useState<'visibility' | 'mentions'>('visibility')
+  const { selectedProjectId, selectedProjectName } = useProject()
+  const projectData = getProjectData(selectedProjectId)
   
   return (
     <div className="flex-1 bg-slate-900 min-h-screen overflow-auto">
@@ -29,8 +33,20 @@ export default function Dashboard({ onNavigate }: DashboardProps) {
       <div className="sticky top-0 z-10 bg-slate-900 px-8 pt-8 pb-6 mb-8 border-b border-gray-800">
         <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-white text-3xl font-bold mb-2">Dashboard</h1>
-          <p className="text-gray-400">Track your onboarding progress and skill development journey</p>
+          <h1 className="text-white text-3xl font-bold mb-2">
+            Dashboard
+            {selectedProjectName && (
+              <span className="text-blue-400 text-xl ml-3 font-normal">
+                - {selectedProjectName}
+              </span>
+            )}
+          </h1>
+          <p className="text-gray-400">
+            {projectData 
+              ? `Track your progress on ${projectData.dashboard.projectSpecific.name}` 
+              : 'Track your onboarding progress and skill development journey'
+            }
+          </p>
         </div>
         <div className="flex space-x-4">
           <button className="px-4 py-2 bg-gray-700 text-white rounded-lg hover:bg-gray-600 transition-colors flex items-center space-x-2">
@@ -50,41 +66,70 @@ export default function Dashboard({ onNavigate }: DashboardProps) {
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
         <MetricCard
           title="Tools Required"
-          value="2/3"
+          value={projectData?.dashboard.metrics.todos.value || "2/3"}
           icon={<Package className="w-6 h-6" />}
-          trend="Installed"
+          trend={projectData?.dashboard.metrics.todos.trend || "Installed"}
           trendType="positive"
           color="blue"
           onClick={() => onNavigate?.('tools-apps')}
         />
         <MetricCard
           title="Learning Progress"
-          value="75%"
+          value={projectData?.dashboard.metrics.learningProgress.value || "75%"}
           icon={<BookOpen className="w-6 h-6" />}
-          trend="Complete"
+          trend={projectData?.dashboard.metrics.learningProgress.trend || "Complete"}
           trendType="positive"
           color="green"
           onClick={() => onNavigate?.('learn')}
         />
         <MetricCard
           title="Growth Alignment"
-          value="4.6/5"
+          value={projectData?.dashboard.metrics.growthAlignment.value || "4.6/5"}
           icon={<TrendingUp className="w-6 h-6" />}
-          trend="High Alignment"
+          trend={projectData?.dashboard.metrics.growthAlignment.trend || "High Alignment"}
           trendType="positive"
           color="orange"
           onClick={() => onNavigate?.('my-skills')}
         />
         <MetricCard
           title="Bot Interactions"
-          value="12"
+          value={projectData?.dashboard.metrics.botInteractions.value || "12"}
           icon={<Bot className="w-6 h-6" />}
-          trend="Confidence: 4.8/5"
+          trend={projectData?.dashboard.metrics.botInteractions.trend || "Confidence: 4.8/5"}
           trendType="positive"
           color="purple"
           onClick={() => onNavigate?.('ask-bot')}
         />
       </div>
+
+      {/* Project-Specific Metrics */}
+      {projectData && (
+        <div className="mb-8">
+          <h2 className="text-white text-xl font-semibold mb-4 flex items-center">
+            <Trophy className="w-5 h-5 mr-2 text-yellow-500" />
+            {projectData.dashboard.projectSpecific.name} Metrics
+          </h2>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+            {projectData.dashboard.projectSpecific.keyMetrics.map((metric, index) => (
+              <div key={index} className="bg-gray-800/50 rounded-xl p-6 border border-gray-700/50">
+                <div className="flex items-center justify-between mb-3">
+                  <h3 className="text-gray-300 text-sm font-medium">{metric.title}</h3>
+                  <div className={`w-3 h-3 rounded-full bg-${metric.color}-500`}></div>
+                </div>
+                <div className="flex items-end justify-between">
+                  <div className="text-2xl font-bold text-white">{metric.value}</div>
+                  <div className={`text-sm font-medium ${
+                    metric.trend.startsWith('+') ? 'text-green-400' : 
+                    metric.trend.startsWith('-') ? 'text-red-400' : 'text-gray-400'
+                  }`}>
+                    {metric.trend}
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
 
       {/* Charts Section */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">

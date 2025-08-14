@@ -1,6 +1,8 @@
 'use client'
 
 import React, { useState } from 'react'
+import { useProject } from '@/contexts/ProjectContext'
+import { getProjectData } from '@/data/projectData'
 import { 
   Code2, 
   Brain, 
@@ -282,6 +284,71 @@ export default function MySkillsPage() {
   const [selectedSection, setSelectedSection] = useState<string>('technical')
   const [selectedSkill, setSelectedSkill] = useState<Skill | null>(null)
   const [filter, setFilter] = useState<'all' | SkillLevel>('all')
+  const { selectedProjectId, selectedProjectName } = useProject()
+  const projectData = getProjectData(selectedProjectId)
+
+  // Transform project skills data to match component format
+  const getProjectSkillSections = () => {
+    if (!projectData) return skillSections
+
+    const transformSkills = (skills: any[], sectionTitle: string, iconComponent: React.ReactNode) => {
+      return skills.map((skill, index) => ({
+        id: `${sectionTitle.toLowerCase()}-${index}`,
+        name: skill.skill,
+        level: skill.level as SkillLevel,
+        proficiency: skill.level === 'strong' ? 85 : skill.level === 'okay' ? 65 : 45,
+        projectRelevance: skill.priority as 'high' | 'medium' | 'low',
+        growthPotential: skill.priority as 'high' | 'medium' | 'low',
+        lastAssessed: '2024-02-01',
+        description: skill.projectRelevance,
+        developmentActions: skill.level === 'needs-work' ? 
+          [`Improve ${skill.skill} through project work`, 'Complete relevant training modules'] : 
+          [`Maintain ${skill.skill} expertise`, 'Share knowledge with team'],
+        icon: iconComponent
+      }))
+    }
+
+         return [
+       {
+         id: 'technical',
+         title: 'Technical Skills',
+         subtitle: selectedProjectName ? `Core technical skills for ${selectedProjectName}` : 'Programming languages, frameworks, and technical expertise',
+         description: selectedProjectName ? `Essential technical capabilities required for ${selectedProjectName} development` : 'Core technical competencies for software development',
+         icon: <Code2 className="w-6 h-6" />,
+         color: 'from-blue-600 to-cyan-600',
+         skills: transformSkills(projectData.skills.technical, 'technical', <Code2 className="w-5 h-5" />)
+       },
+       {
+         id: 'domain',
+         title: 'Domain Skills',
+         subtitle: selectedProjectName ? `Domain expertise relevant to ${selectedProjectName}` : 'Industry-specific knowledge and domain expertise',
+         description: selectedProjectName ? `Business domain knowledge specific to ${selectedProjectName}` : 'Industry and business domain expertise',
+         icon: <Brain className="w-6 h-6" />,
+         color: 'from-purple-600 to-pink-600',
+         skills: transformSkills(projectData.skills.domain, 'domain', <Brain className="w-5 h-5" />)
+       },
+       {
+         id: 'functional',
+         title: 'Functional Skills',
+         subtitle: selectedProjectName ? `Functional capabilities for ${selectedProjectName}` : 'Process, methodology, and operational skills',
+         description: selectedProjectName ? `Operational and process skills for ${selectedProjectName} delivery` : 'Process and methodological capabilities',
+         icon: <Settings className="w-6 h-6" />,
+         color: 'from-green-600 to-emerald-600',
+         skills: transformSkills(projectData.skills.functional, 'functional', <Settings className="w-5 h-5" />)
+       },
+       {
+         id: 'leadership',
+         title: 'Leadership Skills',
+         subtitle: selectedProjectName ? `Leadership skills for ${selectedProjectName} success` : 'Team leadership, communication, and soft skills',
+         description: selectedProjectName ? `Leadership and interpersonal skills for ${selectedProjectName} team dynamics` : 'Leadership and soft skill competencies',
+         icon: <Users className="w-6 h-6" />,
+         color: 'from-orange-600 to-red-600',
+         skills: transformSkills(projectData.skills.leadership, 'leadership', <Users className="w-5 h-5" />)
+       }
+     ]
+  }
+
+  const currentSkillSections = getProjectSkillSections()
 
   const getSkillLevelColor = (level: SkillLevel) => {
     switch (level) {
@@ -327,13 +394,13 @@ export default function MySkillsPage() {
     }
   }
 
-  const currentSection = skillSections.find(section => section.id === selectedSection)
+  const currentSection = currentSkillSections.find(section => section.id === selectedSection)
   const filteredSkills = currentSection?.skills.filter(skill => 
     filter === 'all' || skill.level === filter
   ) || []
 
   // Calculate overall stats
-  const allSkills = skillSections.flatMap(section => section.skills)
+  const allSkills = currentSkillSections.flatMap(section => section.skills)
   const strongSkills = allSkills.filter(skill => skill.level === 'strong').length
   const okaySkills = allSkills.filter(skill => skill.level === 'okay').length
   const improvementSkills = allSkills.filter(skill => skill.level === 'needs-improvement').length
@@ -345,8 +412,20 @@ export default function MySkillsPage() {
       <div className="sticky top-0 z-10 bg-slate-900/95 backdrop-blur-sm px-8 pt-8 pb-6 mb-8 border-b border-gray-800">
         <div className="flex items-center justify-between">
           <div>
-            <h1 className="text-white text-3xl font-bold mb-2">My Skills</h1>
-            <p className="text-gray-400">Track your skill development and alignment with project growth areas</p>
+            <h1 className="text-white text-3xl font-bold mb-2">
+              My Skills
+              {selectedProjectName && (
+                <span className="text-blue-400 text-xl ml-3 font-normal">
+                  - {selectedProjectName}
+                </span>
+              )}
+            </h1>
+            <p className="text-gray-400">
+              {projectData 
+                ? `Skills relevant to ${projectData.dashboard.projectSpecific.name} project requirements` 
+                : 'Track your skill development and alignment with project growth areas'
+              }
+            </p>
           </div>
           <div className="flex items-center space-x-6">
             <div className="text-center">
@@ -368,7 +447,7 @@ export default function MySkillsPage() {
       <div className="px-8 pb-8">
         {/* Skills Overview Cards */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-          {skillSections.map((section) => {
+          {currentSkillSections.map((section) => {
             const sectionSkills = section.skills
             const avgProficiency = Math.round(
               sectionSkills.reduce((sum, skill) => sum + skill.proficiency, 0) / sectionSkills.length

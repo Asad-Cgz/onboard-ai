@@ -2,6 +2,164 @@
 @tailwind components;
 @tailwind utilities;
 
+/* CSS Custom Properties for Dynamic Theming */
+:root {
+  /* Default Color Scheme */
+  --color-primary: #3B82F6;
+  --color-primary-light: #60A5FA;
+  --color-primary-dark: #1D4ED8;
+  --color-secondary: #1E40AF;
+  --color-accent: #06B6D4;
+  --color-custom-accent: #3B82F6;
+  
+  /* Typography */
+  --font-size-base: 16px;
+  --font-family: 'Inter', sans-serif;
+  --line-height: 1.5;
+  
+  /* Layout */
+  --border-radius: 8px;
+  --sidebar-width: 280px;
+}
+
+/* Dynamic Color Application */
+.dynamic-primary {
+  background-color: var(--color-primary) !important;
+}
+
+.dynamic-primary-text {
+  color: var(--color-primary) !important;
+}
+
+.dynamic-accent {
+  background-color: var(--color-accent) !important;
+}
+
+.dynamic-accent-text {
+  color: var(--color-accent) !important;
+}
+
+.dynamic-border-radius {
+  border-radius: var(--border-radius) !important;
+}
+
+/* Typography Classes */
+.dynamic-font-size {
+  font-size: var(--font-size-base) !important;
+}
+
+.dynamic-font-family {
+  font-family: var(--font-family) !important;
+}
+
+.dynamic-line-height {
+  line-height: var(--line-height) !important;
+}
+
+/* Compact Mode */
+.compact-mode .p-8 {
+  padding: 1rem !important;
+}
+
+.compact-mode .p-6 {
+  padding: 0.75rem !important;
+}
+
+.compact-mode .p-4 {
+  padding: 0.5rem !important;
+}
+
+.compact-mode .space-y-8 > * + * {
+  margin-top: 1rem !important;
+}
+
+.compact-mode .space-y-6 > * + * {
+  margin-top: 0.75rem !important;
+}
+
+.compact-mode .text-3xl {
+  font-size: 1.5rem !important;
+}
+
+.compact-mode .text-2xl {
+  font-size: 1.25rem !important;
+}
+
+/* High Contrast Mode */
+.high-contrast {
+  --tw-bg-opacity: 1;
+  --tw-text-opacity: 1;
+}
+
+.high-contrast .bg-slate-900 {
+  background-color: #000000 !important;
+}
+
+.high-contrast .bg-gray-800 {
+  background-color: #1a1a1a !important;
+}
+
+.high-contrast .text-gray-400 {
+  color: #cccccc !important;
+}
+
+.high-contrast .border-gray-700 {
+  border-color: #444444 !important;
+}
+
+/* Reduced Motion */
+.reduced-motion *,
+.reduced-motion *:before,
+.reduced-motion *:after {
+  animation-duration: 0.01ms !important;
+  animation-iteration-count: 1 !important;
+  transition-duration: 0.01ms !important;
+  scroll-behavior: auto !important;
+}
+
+/* Light Theme Support */
+.light {
+  --tw-bg-slate-900: #ffffff;
+  --tw-bg-gray-800: #f8f9fa;
+  --tw-bg-gray-700: #e9ecef;
+  --tw-text-white: #000000;
+  --tw-text-gray-400: #6c757d;
+  --tw-text-gray-300: #495057;
+}
+
+.light .bg-slate-900 {
+  background-color: #ffffff !important;
+  color: #000000 !important;
+}
+
+.light .bg-gray-800 {
+  background-color: #f8f9fa !important;
+}
+
+.light .bg-gray-700 {
+  background-color: #e9ecef !important;
+}
+
+.light .text-white {
+  color: #000000 !important;
+}
+
+.light .text-gray-400 {
+  color: #6c757d !important;
+}
+
+.light .text-gray-300 {
+  color: #495057 !important;
+}
+
+.light .border-gray-700 {
+  border-color: #dee2e6 !important;
+}
+
+.light .border-gray-800 {
+  border-color: #ced4da !important;
+}
+
 @layer base {
   * {
     @apply border-gray-200;

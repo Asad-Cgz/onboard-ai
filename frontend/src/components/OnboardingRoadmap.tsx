@@ -1,6 +1,8 @@
 'use client'
 
 import React, { useState } from 'react'
+import { useProject } from '@/contexts/ProjectContext'
+import { getProjectData } from '@/data/projectData'
 import { 
   Download, 
   Settings, 
@@ -117,7 +119,28 @@ const roadmapPhases: RoadmapPhase[] = [
 
 export default function OnboardingRoadmap() {
   const [selectedPhase, setSelectedPhase] = useState<RoadmapPhase | null>(null)
-  const [completedPhases] = useState(2) // Simulated progress
+  const { selectedProjectId, selectedProjectName } = useProject()
+  const projectData = getProjectData(selectedProjectId)
+  
+  // Use project-specific onboarding data if available
+  const currentRoadmapPhases = projectData ? 
+    projectData.onboarding.phases.map((phase, index) => ({
+      id: phase.id,
+      title: phase.title,
+      description: phase.description,
+      icon: index === 0 ? <Download className="w-6 h-6" /> :
+            index === 1 ? <Settings className="w-6 h-6" /> :
+            index === 2 ? <Building2 className="w-6 h-6" /> :
+            <Code className="w-6 h-6" />,
+      status: phase.status,
+      items: phase.tasks.map(task => task.title),
+      color: phase.status === 'completed' ? "from-green-500 to-emerald-600" :
+             phase.status === 'current' ? "from-blue-500 to-cyan-600" :
+             "from-gray-400 to-gray-500"
+    })) : roadmapPhases
+
+  const completedPhases = projectData ? 
+    projectData.onboarding.phases.filter(p => p.status === 'completed').length : 2
 
   const getStatusIcon = (status: string, phaseId: number) => {
     if (phaseId <= completedPhases) {
@@ -141,16 +164,30 @@ export default function OnboardingRoadmap() {
       <div className="sticky top-0 z-10 bg-slate-900/95 backdrop-blur-sm px-8 pt-8 pb-6 mb-8 border-b border-gray-800">
         <div className="flex items-center justify-between">
           <div>
-            <h1 className="text-white text-3xl font-bold mb-2">Onboarding Roadmap</h1>
-            <p className="text-gray-400">Your journey to smooth settlement - stress free onboarding</p>
+            <h1 className="text-white text-3xl font-bold mb-2">
+              Onboarding Roadmap
+              {selectedProjectName && (
+                <span className="text-blue-400 text-xl ml-3 font-normal">
+                  - {selectedProjectName}
+                </span>
+              )}
+            </h1>
+            <p className="text-gray-400">
+              {projectData 
+                ? `Your onboarding journey for ${projectData.dashboard.projectSpecific.name}` 
+                : 'Your journey to smooth settlement - stress free onboarding'
+              }
+            </p>
           </div>
           <div className="flex items-center space-x-6">
             <div className="text-center">
-              <div className="text-2xl font-bold text-white">{completedPhases}/6</div>
+              <div className="text-2xl font-bold text-white">{completedPhases}/{currentRoadmapPhases.length}</div>
               <div className="text-sm text-gray-400">Phases Complete</div>
             </div>
             <div className="text-center">
-              <div className="text-2xl font-bold text-green-400">{Math.round((completedPhases / 6) * 100)}%</div>
+              <div className="text-2xl font-bold text-green-400">
+                {projectData ? projectData.onboarding.overallProgress : Math.round((completedPhases / currentRoadmapPhases.length) * 100)}%
+              </div>
               <div className="text-sm text-gray-400">Progress</div>
             </div>
           </div>
@@ -178,7 +215,7 @@ export default function OnboardingRoadmap() {
           <div className="absolute left-8 top-16 bottom-0 w-0.5 bg-gradient-to-b from-purple-500 via-blue-500 to-gray-600"></div>
           
           <div className="space-y-8">
-            {roadmapPhases.map((phase, index) => {
+            {currentRoadmapPhases.map((phase, index) => {
               const status = getPhaseStatus(phase.id)
               const isActive = status === 'current'
               const isCompleted = status === 'completed'
@@ -250,7 +287,7 @@ export default function OnboardingRoadmap() {
                   </div>
 
                   {/* Arrow Connector */}
-                  {index < roadmapPhases.length - 1 && (
+                  {index < currentRoadmapPhases.length - 1 && (
                     <div className="absolute left-12 -bottom-4 w-8 h-8 flex items-center justify-center">
                       <ArrowRight className="w-5 h-5 text-purple-400 transform rotate-90" />
                     </div>

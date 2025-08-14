@@ -1,6 +1,8 @@
 'use client'
 
 import React, { useState } from 'react'
+import { useProject } from '@/contexts/ProjectContext'
+import { getProjectData } from '@/data/projectData'
 import { 
   Play, 
   FileText, 
@@ -25,7 +27,13 @@ import {
   Code,
   Database,
   Globe,
-  Shield
+  Shield,
+  Volume2,
+  Gamepad2,
+  Trophy,
+  Zap,
+  Headphones,
+  Mic
 } from 'lucide-react'
 
 const LearnPage = () => {
@@ -504,6 +512,54 @@ const LearnPage = () => {
     }
   }
 
+  const getResourceIcon = (resource: any) => {
+    if (resource.title.includes('Game') || resource.title.includes('Interactive') || resource.title.includes('Quiz') || resource.title.includes('Simulation')) {
+      return <Gamepad2 className="w-4 h-4 text-purple-400" />
+    }
+    if (resource.title.includes('Audio') || resource.title.includes('Podcast') || resource.title.includes('Rap') || resource.title.includes('Anthem')) {
+      return <Headphones className="w-4 h-4 text-green-400" />
+    }
+    if (resource.title.includes('Video') || resource.title.includes('Documentary') || resource.title.includes('Interview')) {
+      return <PlayCircle className="w-4 h-4 text-blue-400" />
+    }
+    if (resource.type === 'interactive') {
+      return <Zap className="w-4 h-4 text-yellow-400" />
+    }
+    if (resource.type === 'video') {
+      return <Play className="w-4 h-4 text-red-400" />
+    }
+    return <FileText className="w-4 h-4 text-gray-400" />
+  }
+
+  const getGamifiedBadge = (title: string) => {
+    if (title.includes('🎮') || title.includes('Game') || title.includes('Adventure')) {
+      return <div className="flex items-center space-x-1 bg-purple-500/20 text-purple-300 px-2 py-1 rounded-full text-xs">
+        <Gamepad2 className="w-3 h-3" />
+        <span>Interactive Game</span>
+      </div>
+    }
+    if (title.includes('🎯') || title.includes('Quiz') || title.includes('Challenge') || title.includes('Championship')) {
+      return <div className="flex items-center space-x-1 bg-orange-500/20 text-orange-300 px-2 py-1 rounded-full text-xs">
+        <Trophy className="w-3 h-3" />
+        <span>Quiz Challenge</span>
+      </div>
+    }
+    if (title.includes('🎬') || title.includes('🎵') || title.includes('Video') || title.includes('Audio')) {
+      return <div className="flex items-center space-x-1 bg-green-500/20 text-green-300 px-2 py-1 rounded-full text-xs">
+        <Volume2 className="w-3 h-3" />
+        <span>Audio/Video</span>
+      </div>
+    }
+    return null
+  }
+
+  const { selectedProjectId, selectedProjectName } = useProject()
+  const projectData = getProjectData(selectedProjectId)
+  
+  // Use project-specific learning data or fallback to default data
+  const currentProjectPaths = projectData?.learning.projectPaths || projectLearningPaths
+  const currentSelfPaths = projectData?.learning.selfPaths || selfLearningPaths
+
   const getPriorityColor = (priority: string) => {
     switch (priority) {
       case 'High': return 'text-red-600 bg-red-100'
@@ -552,7 +608,7 @@ const LearnPage = () => {
 
       {/* Learning Paths */}
       <div className="space-y-6">
-        {projectLearningPaths.map((path) => (
+        {currentProjectPaths.map((path) => (
           <div key={path.id} className="bg-slate-800 rounded-xl shadow-lg border border-slate-700">
             <div className="p-6">
               <div className="flex items-center justify-between mb-4">
@@ -613,7 +669,12 @@ const LearnPage = () => {
                           ) : (
                             <div className="w-5 h-5 border-2 border-gray-400 rounded-full"></div>
                           )}
-                          <h4 className="font-medium text-white">{module.title}</h4>
+                          <div className="flex flex-col">
+                            <h4 className="font-medium text-white">{module.title}</h4>
+                            {getGamifiedBadge(module.title) && (
+                              <div className="mt-1">{getGamifiedBadge(module.title)}</div>
+                            )}
+                          </div>
                           {getTypeIcon(module.type)}
                         </div>
                         <div className="flex items-center space-x-3">
@@ -631,7 +692,7 @@ const LearnPage = () => {
                         {module.resources.map((resource, index) => (
                           <div key={index} className="flex items-center justify-between bg-slate-600 rounded-md p-3">
                             <div className="flex items-center space-x-3">
-                              {getTypeIcon(resource.type)}
+                              {getResourceIcon(resource)}
                               <span className="text-white text-sm">{resource.title}</span>
                               <span className="text-xs text-gray-400">
                                 {resource.duration && `${resource.duration}`}
@@ -712,7 +773,7 @@ const LearnPage = () => {
 
       {/* Self Learning Paths */}
       <div className="grid gap-6">
-        {selfLearningPaths.map((path) => (
+        {currentSelfPaths.map((path) => (
           <div key={path.id} className="bg-slate-800 rounded-xl p-6 border border-slate-700">
             <div className="flex items-start justify-between mb-4">
               <div className="flex-1">
@@ -721,8 +782,8 @@ const LearnPage = () => {
                   <span className={`px-2 py-1 rounded-full text-xs font-medium ${getDifficultyColor(path.difficulty)}`}>
                     {path.difficulty}
                   </span>
-                  <span className={`px-2 py-1 rounded-full text-xs font-medium ${getPriorityColor(path.priority)}`}>
-                    {path.priority} Priority
+                  <span className="px-2 py-1 rounded-full text-xs font-medium bg-blue-100 text-blue-600">
+                    {path.category}
                   </span>
                 </div>
                 <p className="text-gray-400 mb-3">{path.description}</p>
@@ -736,8 +797,8 @@ const LearnPage = () => {
                     <span>{path.estimatedTime}</span>
                   </span>
                   <span className="flex items-center space-x-1">
-                    <Calendar className="w-4 h-4" />
-                    <span>Due: {new Date(path.deadline).toLocaleDateString()}</span>
+                    <Target className="w-4 h-4" />
+                    <span>{path.totalModules} modules</span>
                   </span>
                 </div>
               </div>
@@ -783,8 +844,20 @@ const LearnPage = () => {
       <div className="sticky top-0 z-10 bg-slate-900 px-8 pt-8 pb-6 mb-8 border-b border-gray-800">
         <div className="flex items-center justify-between">
           <div>
-            <h1 className="text-white text-3xl font-bold mb-2">Learn</h1>
-            <p className="text-gray-400">Enhance your skills with project and self-directed learning paths</p>
+            <h1 className="text-white text-3xl font-bold mb-2">
+              Learn
+              {selectedProjectName && (
+                <span className="text-blue-400 text-xl ml-3 font-normal">
+                  - {selectedProjectName}
+                </span>
+              )}
+            </h1>
+            <p className="text-gray-400">
+              {projectData 
+                ? `Learn skills and concepts for ${projectData.dashboard.projectSpecific.name}` 
+                : 'Enhance your skills with project and self-directed learning paths'
+              }
+            </p>
           </div>
           <div className="flex space-x-4">
             <div className="relative">

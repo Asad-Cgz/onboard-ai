@@ -1,6 +1,7 @@
 'use client'
 
 import React, { useState } from 'react'
+import { useProject } from '@/contexts/ProjectContext'
 import { 
   FolderOpen, 
   Calendar, 
@@ -26,7 +27,6 @@ import {
   Timer,
   DollarSign,
   Calendar as CalendarIcon,
-  Progress,
   Activity,
   Filter,
   Search,
@@ -98,12 +98,12 @@ const currentProjects: Project[] = [
     teamMembers: [
       { id: 'raja', name: 'Raja', role: 'Engineering Manager', avatar: '👨🏽' },
       { id: 'asad', name: 'Asad', role: 'Lead Developer', avatar: '👨🏻‍💻' },
+      { id: 'maya', name: 'Maya', role: 'QA Engineer', avatar: '👩🏽‍💻' },
       { id: 'sam', name: 'Sam', role: 'Senior Developer', avatar: '👨🏽‍💻' },
-      { id: 'anjana', name: 'Anjana', role: 'QA Lead', avatar: '👩🏽‍💼' },
-      { id: 'favour', name: 'Favour', role: 'Business Analyst', avatar: '👨🏿‍💼' }
+      { id: 'anjana', name: 'Anjana', role: 'QA Lead', avatar: '👩🏽‍💼' }
     ],
     technologies: ['React', 'Node.js', 'TypeScript', 'AWS', 'Salesforce', 'PostgreSQL'],
-    budget: 250000,
+    budget: 450000,
     milestones: [
       { name: 'Requirements Analysis', date: '2024-02-01', completed: true },
       { name: 'System Architecture', date: '2024-02-15', completed: true },
@@ -120,10 +120,10 @@ const currentProjects: Project[] = [
     color: 'from-blue-500 to-cyan-600'
   },
   {
-    id: 'fintech-mobile-2024',
-    name: 'FinTech Mobile App',
-    client: 'Digital Bank Solutions',
-    description: 'Cross-platform mobile application for personal banking with advanced security features and AI-powered financial insights.',
+    id: 'fintech-2024',
+    name: 'FinTech Payment Gateway',
+    client: 'NextGen Financial',
+    description: 'Building a secure, scalable payment processing system with real-time fraud detection and multi-currency support.',
     status: 'active',
     priority: 'medium',
     startDate: '2024-01-20',
@@ -240,11 +240,15 @@ const previousProjects: Project[] = [
   }
 ]
 
-export default function MyProjectPage() {
+interface MyProjectPageProps {
+  onNavigate?: (page: string) => void
+}
+
+export default function MyProjectPage({ onNavigate }: MyProjectPageProps) {
   const [selectedTab, setSelectedTab] = useState<'current' | 'previous'>('current')
-  const [selectedProject, setSelectedProject] = useState<Project | null>(null)
   const [searchTerm, setSearchTerm] = useState('')
   const [filterStatus, setFilterStatus] = useState<'all' | ProjectStatus>('all')
+  const { setSelectedProject } = useProject()
 
   const getStatusColor = (status: ProjectStatus) => {
     switch (status) {
@@ -386,18 +390,21 @@ export default function MyProjectPage() {
           {filteredProjects.map((project) => (
             <div
               key={project.id}
-              onClick={() => setSelectedProject(project)}
-              className="bg-gray-800/30 rounded-xl p-6 border border-gray-700/50 hover:border-gray-600/50 transition-all duration-300 cursor-pointer group"
+              onClick={() => {
+                setSelectedProject(project.id, project.name)
+                onNavigate?.('dashboard')
+              }}
+              className="bg-gray-800/30 rounded-xl p-6 border border-gray-700/50 hover:border-gray-600/50 transition-all duration-300 cursor-pointer group hover:shadow-2xl"
             >
               {/* Project Header */}
               <div className="flex items-start justify-between mb-4">
                 <div className="flex-1">
                   <div className="flex items-center space-x-3 mb-2">
-                    <div className={`w-10 h-10 rounded-lg bg-gradient-to-r ${project.color} flex items-center justify-center`}>
-                      <FolderOpen className="w-5 h-5 text-white" />
+                    <div className={`w-12 h-12 rounded-lg bg-gradient-to-r ${project.color} flex items-center justify-center`}>
+                      <FolderOpen className="w-6 h-6 text-white" />
                     </div>
                     <div>
-                      <h3 className="text-white font-semibold text-lg group-hover:text-blue-400 transition-colors">
+                      <h3 className="text-white font-bold text-xl group-hover:text-blue-400 transition-colors">
                         {project.name}
                       </h3>
                       <p className="text-gray-400 text-sm">{project.client}</p>
@@ -405,13 +412,13 @@ export default function MyProjectPage() {
                   </div>
                 </div>
                 <div className="flex items-center space-x-2">
-                  <div className={`px-2 py-1 rounded border text-xs font-medium ${getStatusColor(project.status)}`}>
+                  <div className={`px-3 py-1 rounded-lg border text-xs font-medium ${getStatusColor(project.status)}`}>
                     <div className="flex items-center space-x-1">
                       {getStatusIcon(project.status)}
                       <span className="capitalize">{project.status}</span>
                     </div>
                   </div>
-                  <div className={`w-2 h-2 rounded-full ${getPriorityColor(project.priority)}`}></div>
+                  <div className={`w-3 h-3 rounded-full ${getPriorityColor(project.priority)}`}></div>
                 </div>
               </div>
 
@@ -498,225 +505,13 @@ export default function MyProjectPage() {
                   <span className="text-gray-400 text-sm">{project.teamMembers.length} members</span>
                 </div>
                 <div className="text-gray-400 text-xs">
-                  {new Date(project.startDate).toLocaleDateString()} - {new Date(project.endDate).toLocaleDateString()}
+                  {new Date(project.startDate).toLocaleDateString("en-US")} - {new Date(project.endDate).toLocaleDateString("en-US")}
                 </div>
               </div>
             </div>
           ))}
         </div>
       </div>
-
-      {/* Project Detail Modal */}
-      {selectedProject && (
-        <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-          <div className="bg-gray-800 rounded-2xl p-8 max-w-4xl w-full max-h-[90vh] overflow-y-auto border border-gray-700">
-            {/* Modal Header */}
-            <div className="flex items-start justify-between mb-6">
-              <div className="flex items-center space-x-4">
-                <div className={`w-16 h-16 rounded-xl bg-gradient-to-r ${selectedProject.color} flex items-center justify-center`}>
-                  <FolderOpen className="w-8 h-8 text-white" />
-                </div>
-                <div>
-                  <h2 className="text-white text-2xl font-bold mb-1">{selectedProject.name}</h2>
-                  <p className="text-gray-300 text-lg">{selectedProject.client}</p>
-                  <div className={`inline-flex items-center space-x-2 px-3 py-1 rounded-lg border text-sm font-medium mt-2 ${getStatusColor(selectedProject.status)}`}>
-                    {getStatusIcon(selectedProject.status)}
-                    <span className="capitalize">{selectedProject.status}</span>
-                  </div>
-                </div>
-              </div>
-              <button
-                onClick={() => setSelectedProject(null)}
-                className="p-2 hover:bg-gray-700 rounded-lg transition-colors"
-              >
-                <Plus className="w-5 h-5 text-gray-400 transform rotate-45" />
-              </button>
-            </div>
-
-            {/* Project Details Grid */}
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-8">
-              {/* Left Column */}
-              <div className="space-y-6">
-                {/* Description */}
-                <div>
-                  <h3 className="text-white font-semibold text-lg mb-3">Project Description</h3>
-                  <p className="text-gray-300 leading-relaxed">{selectedProject.description}</p>
-                </div>
-
-                {/* Timeline & Hours */}
-                <div>
-                  <h3 className="text-white font-semibold text-lg mb-3">Timeline & Hours</h3>
-                  <div className="space-y-4">
-                    <div className="grid grid-cols-2 gap-4">
-                      <div className="bg-gray-700/30 rounded-lg p-4">
-                        <div className="flex items-center space-x-2 mb-2">
-                          <CalendarIcon className="w-4 h-4 text-blue-400" />
-                          <span className="text-gray-400 text-sm">Start Date</span>
-                        </div>
-                        <div className="text-white font-medium">{new Date(selectedProject.startDate).toLocaleDateString()}</div>
-                      </div>
-                      <div className="bg-gray-700/30 rounded-lg p-4">
-                        <div className="flex items-center space-x-2 mb-2">
-                          <CalendarIcon className="w-4 h-4 text-red-400" />
-                          <span className="text-gray-400 text-sm">End Date</span>
-                        </div>
-                        <div className="text-white font-medium">{new Date(selectedProject.endDate).toLocaleDateString()}</div>
-                      </div>
-                    </div>
-                    <div className="grid grid-cols-2 gap-4">
-                      <div className="bg-gray-700/30 rounded-lg p-4">
-                        <div className="flex items-center space-x-2 mb-2">
-                          <Timer className="w-4 h-4 text-green-400" />
-                          <span className="text-gray-400 text-sm">Logged Hours</span>
-                        </div>
-                        <div className="text-white font-medium">{selectedProject.loggedHours}h</div>
-                      </div>
-                      <div className="bg-gray-700/30 rounded-lg p-4">
-                        <div className="flex items-center space-x-2 mb-2">
-                          <Clock className="w-4 h-4 text-orange-400" />
-                          <span className="text-gray-400 text-sm">Required Hours</span>
-                        </div>
-                        <div className="text-white font-medium">{selectedProject.requiredHours}h</div>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-
-                {/* Technologies */}
-                <div>
-                  <h3 className="text-white font-semibold text-lg mb-3">Technologies</h3>
-                  <div className="flex flex-wrap gap-2">
-                    {selectedProject.technologies.map((tech, index) => (
-                      <span
-                        key={index}
-                        className="px-3 py-1.5 bg-blue-500/20 text-blue-400 text-sm rounded-lg border border-blue-500/30"
-                      >
-                        {tech}
-                      </span>
-                    ))}
-                  </div>
-                </div>
-              </div>
-
-              {/* Right Column */}
-              <div className="space-y-6">
-                {/* Project Lead */}
-                <div>
-                  <h3 className="text-white font-semibold text-lg mb-3">Project Lead</h3>
-                  <div className="bg-gray-700/30 rounded-lg p-4">
-                    <div className="flex items-center space-x-3">
-                      <div className="w-12 h-12 rounded-full bg-gray-600 flex items-center justify-center text-lg">
-                        {selectedProject.projectLead.avatar}
-                      </div>
-                      <div>
-                        <div className="text-white font-medium">{selectedProject.projectLead.name}</div>
-                        <div className="text-gray-400 text-sm">{selectedProject.projectLead.role}</div>
-                        <div className="text-gray-400 text-xs">{selectedProject.projectLead.email}</div>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-
-                {/* Team Members */}
-                <div>
-                  <h3 className="text-white font-semibold text-lg mb-3">Team Members</h3>
-                  <div className="space-y-2">
-                    {selectedProject.teamMembers.map((member) => (
-                      <div key={member.id} className="flex items-center space-x-3 p-3 bg-gray-700/30 rounded-lg">
-                        <div className="w-8 h-8 rounded-full bg-gray-600 flex items-center justify-center text-sm">
-                          {member.avatar}
-                        </div>
-                        <div>
-                          <div className="text-white font-medium text-sm">{member.name}</div>
-                          <div className="text-gray-400 text-xs">{member.role}</div>
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-
-                {/* Progress & Budget */}
-                {selectedProject.budget && (
-                  <div>
-                    <h3 className="text-white font-semibold text-lg mb-3">Budget & Progress</h3>
-                    <div className="space-y-4">
-                      <div className="bg-gray-700/30 rounded-lg p-4">
-                        <div className="flex items-center space-x-2 mb-2">
-                          <DollarSign className="w-4 h-4 text-green-400" />
-                          <span className="text-gray-400 text-sm">Project Budget</span>
-                        </div>
-                        <div className="text-white font-medium">${selectedProject.budget.toLocaleString()}</div>
-                      </div>
-                      <div className="bg-gray-700/30 rounded-lg p-4">
-                        <div className="flex items-center space-x-2 mb-2">
-                          <Progress className="w-4 h-4 text-blue-400" />
-                          <span className="text-gray-400 text-sm">Completion</span>
-                        </div>
-                        <div className="text-white font-medium">{selectedProject.progressPercentage}%</div>
-                        <div className="w-full bg-gray-800 rounded-full h-2 mt-2">
-                          <div 
-                            className={`bg-gradient-to-r ${selectedProject.color} h-2 rounded-full transition-all duration-300`}
-                            style={{ width: `${selectedProject.progressPercentage}%` }}
-                          ></div>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                )}
-              </div>
-            </div>
-
-            {/* Milestones */}
-            <div className="mb-8">
-              <h3 className="text-white font-semibold text-lg mb-4">Project Milestones</h3>
-              <div className="space-y-3">
-                {selectedProject.milestones.map((milestone, index) => (
-                  <div key={index} className="flex items-center space-x-4 p-3 bg-gray-700/30 rounded-lg">
-                    <div className={`w-8 h-8 rounded-full flex items-center justify-center ${
-                      milestone.completed ? 'bg-green-500' : 'bg-gray-600'
-                    }`}>
-                      {milestone.completed ? (
-                        <CheckCircle2 className="w-4 h-4 text-white" />
-                      ) : (
-                        <Clock className="w-4 h-4 text-gray-400" />
-                      )}
-                    </div>
-                    <div className="flex-1">
-                      <div className={`font-medium ${milestone.completed ? 'text-white' : 'text-gray-300'}`}>
-                        {milestone.name}
-                      </div>
-                      <div className="text-gray-400 text-sm">{new Date(milestone.date).toLocaleDateString()}</div>
-                    </div>
-                    <div className={`px-2 py-1 rounded text-xs ${
-                      milestone.completed ? 'bg-green-500/20 text-green-400' : 'bg-gray-600/20 text-gray-400'
-                    }`}>
-                      {milestone.completed ? 'Completed' : 'Pending'}
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </div>
-
-            {/* Recent Activity */}
-            <div>
-              <h3 className="text-white font-semibold text-lg mb-4">Recent Activity</h3>
-              <div className="space-y-3">
-                {selectedProject.recentActivity.map((activity, index) => (
-                  <div key={index} className="flex items-start space-x-3 p-3 bg-gray-700/30 rounded-lg">
-                    <Activity className="w-4 h-4 text-blue-400 mt-1 flex-shrink-0" />
-                    <div className="flex-1">
-                      <div className="text-gray-300">{activity.action}</div>
-                      <div className="text-gray-400 text-sm">
-                        {activity.user} • {new Date(activity.date).toLocaleDateString()}
-                      </div>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </div>
-          </div>
-        </div>
-      )}
     </div>
   )
 } 

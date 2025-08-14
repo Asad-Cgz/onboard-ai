@@ -1,6 +1,8 @@
 'use client'
 
 import React, { useState, useRef, useEffect } from 'react'
+import { useProject } from '@/contexts/ProjectContext'
+import { getProjectData } from '@/data/projectData'
 import { 
   Bot, 
   Send, 
@@ -44,7 +46,7 @@ interface Message {
 interface QuickAction {
   id: string
   label: string
-  icon: React.ReactNode
+  icon?: React.ReactNode
   prompt: string
   category: string
 }
@@ -119,6 +121,24 @@ export default function AskBotPage() {
   const messagesEndRef = useRef<HTMLDivElement>(null)
   const inputRef = useRef<HTMLInputElement>(null)
 
+  const { selectedProjectId, selectedProjectName } = useProject()
+  const projectData = getProjectData(selectedProjectId)
+  
+  // Use project-specific bot data or fallback to default data
+  const currentQuickActions = projectData?.bot.quickActions || quickActions
+  const currentSuggestions = projectData?.bot.suggestions || []
+
+  const getCategoryIcon = (category: string) => {
+    switch (category) {
+      case 'domain': return <Shield className="w-4 h-4" />
+      case 'technical': return <Code className="w-4 h-4" />
+      case 'tools': return <Settings className="w-4 h-4" />
+      case 'team': return <User className="w-4 h-4" />
+      case 'project': return <FileText className="w-4 h-4" />
+      default: return <HelpCircle className="w-4 h-4" />
+    }
+  }
+
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' })
   }
@@ -141,7 +161,7 @@ export default function AskBotPage() {
     }
   }
 
-  const useSuggestion = (suggestion: string) => {
+  const applySuggestion = (suggestion: string) => {
     setInputMessage(suggestion)
     setSuggestions([])
     inputRef.current?.focus()
@@ -379,8 +399,8 @@ export default function AskBotPage() {
   ]
 
   const filteredQuickActions = selectedCategory === 'all' 
-    ? quickActions 
-    : quickActions.filter(action => action.category === selectedCategory)
+    ? currentQuickActions 
+    : currentQuickActions.filter(action => action.category === selectedCategory)
 
   return (
     <div className="flex-1 bg-slate-900 min-h-screen overflow-hidden flex flex-col">
@@ -392,8 +412,20 @@ export default function AskBotPage() {
               <Bot className="w-6 h-6 text-white" />
             </div>
             <div>
-              <h1 className="text-white text-3xl font-bold mb-1">Ask the Bot</h1>
-              <p className="text-gray-400">Your AI assistant for onboarding and project guidance</p>
+              <h1 className="text-white text-3xl font-bold mb-1">
+                Ask the Bot
+                {selectedProjectName && (
+                  <span className="text-blue-400 text-xl ml-3 font-normal">
+                    - {selectedProjectName}
+                  </span>
+                )}
+              </h1>
+              <p className="text-gray-400">
+                {projectData 
+                  ? `Your AI assistant for ${projectData.bot.projectContext.domain} guidance` 
+                  : 'Your AI assistant for onboarding and project guidance'
+                }
+              </p>
             </div>
           </div>
           <div className="flex items-center space-x-4">
@@ -455,7 +487,7 @@ export default function AskBotPage() {
               >
                 <div className="flex items-center space-x-3 mb-2">
                   <div className="w-8 h-8 bg-blue-500/20 rounded-lg flex items-center justify-center group-hover:bg-blue-500/30 transition-colors">
-                    {action.icon}
+                    {getCategoryIcon(action.category)}
                   </div>
                   <span className="text-white font-medium text-sm">{action.label}</span>
                 </div>
@@ -555,14 +587,14 @@ export default function AskBotPage() {
                   Quick Start Options
                 </h3>
                 <div className="grid grid-cols-2 gap-3">
-                  {quickActions.slice(0, 4).map(action => (
+                  {currentQuickActions.slice(0, 4).map(action => (
                     <button
                       key={action.id}
                       onClick={() => sendQuickAction(action)}
                       className="p-3 bg-gray-700/30 rounded-lg border border-gray-600/50 hover:border-gray-500/50 hover:bg-gray-600/30 transition-all duration-200 text-left group"
                     >
                       <div className="flex items-center space-x-2 mb-1">
-                        {action.icon}
+                        {(action as any).icon || getCategoryIcon(action.category)}
                         <span className="text-white font-medium text-sm">{action.label}</span>
                       </div>
                       <p className="text-gray-400 text-xs">
@@ -586,7 +618,7 @@ export default function AskBotPage() {
                 {suggestions.map((suggestion, index) => (
                   <button
                     key={index}
-                    onClick={() => useSuggestion(suggestion)}
+                    onClick={() => applySuggestion(suggestion)}
                     className="px-3 py-1.5 bg-blue-500/20 text-blue-300 border border-blue-500/30 rounded-lg text-sm hover:bg-blue-500/30 transition-colors"
                   >
                     {suggestion}
